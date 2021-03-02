@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Создание курса/StudyOn{% endblock %}
+
+{% block body %}
+    <h1>Создание курса</h1>
+
+    {{ include('course/_form.html.twig') }}
+
+    <a href="{{ path('courses_index') }}">Вернуться к списку</a>
+{% endblock %}

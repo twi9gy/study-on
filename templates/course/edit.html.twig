@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактирование курса/StudyOn{% endblock %}
+
+{% block body %}
+    <h1>Редактирование Курса. {{ course.title }}</h1>
+
+    {{ include('course/_form.html.twig', {'button_label': 'Изменить'}) }}
+
+    {{ include('course/_delete_form.html.twig') }}
+{% endblock %}
