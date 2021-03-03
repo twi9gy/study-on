@@ -18,7 +18,7 @@
     <hr/>
 
     <a href="{{ path('courses_index') }}">Вернуться к списку курсов</a>
-    <a href="{{ path('lesson_new', {'id': course.id}) }}">Добавить урок</a>
+    <a href="{{ path('lesson_new', {'course_id': course.id}) }}">Добавить урок</a>
     <a href="{{ path('course_edit', {'id': course.id}) }}">Редактировать</a>
     {{ include('course/_delete_form.html.twig') }}
 {% endblock %}

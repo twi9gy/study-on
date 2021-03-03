@@ -24,7 +24,7 @@ class LessonType extends AbstractType
         $this->courseRepository = $courseRepository;
     }
 
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         // Получаем Id курса
         $selectedCourse = $options['selected_course'];
@@ -39,23 +39,20 @@ class LessonType extends AbstractType
                 'required' => true
             ])
             ->add('number', NumberType::class, ['label' => 'Порядкой номер урока в курсе'])
-            ->add('course', HiddenType::class,['data' => $selectedCourse, 'data_class' => null]);
+            ->add('course', HiddenType::class, ['data' => $selectedCourse, 'data_class' => null]);
         ;
 
         // Data Transformer для поля course
         $builder->get("course")->addModelTransformer(new CallbackTransformer(
             // Transformer
-            function ($courseId)
-            {
+            function ($courseId) {
                 return (string) $courseId;
             },
-
             // ReverseTransformer
-            function ($courseId)
-            {
+            function ($courseId) {
                 return $this->courseRepository->find($courseId);
-            })
-        );
+            }
+        ));
     }
 
     public function configureOptions(OptionsResolver $resolver)

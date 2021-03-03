@@ -9,7 +9,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class CourseFixtures extends Fixture
 {
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
         $courses = [
             1 => [

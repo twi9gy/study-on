@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Form\LessonType;
 use App\Repository\CourseRepository;
@@ -30,7 +29,7 @@ class LessonController extends AbstractController
     }
 
     /**
-     * @Route("/new?course_id={id}", name="lesson_new", methods={"GET","POST"})
+     * @Route("/new", name="lesson_new", methods={"GET","POST"})
      * @param Request $request
      * @param \App\Repository\CourseRepository $courseRepository
      * @return Response
@@ -38,7 +37,7 @@ class LessonController extends AbstractController
     public function new(Request $request, CourseRepository $courseRepository): Response
     {
         // Получаем Id курса
-        $courseId = $request->get('id');
+        $courseId = $request->get('course_id');
         // Получаем курс для перехода обратно
         $course = $courseRepository->find($courseId);
 

@@ -43,8 +43,6 @@ class Lesson
     /**
      * @ORM\ManyToOne(targetEntity=Course::class, inversedBy="lessons")
      * @ORM\JoinColumn(nullable=false)
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      */
     private $course;
 

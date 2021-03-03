@@ -7,9 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=CourseRepository::class)
+ * @UniqueEntity(
+ *     fields={"code"},
+ *     message="Поле код должно быть уникальным"
+ * )
  */
 class Course
 {
@@ -110,11 +115,8 @@ class Course
 
     public function removeLesson(Lesson $lesson): self
     {
-        if ($this->lessons->removeElement($lesson)) {
-            // set the owning side to null (unless already changed)
-            if ($lesson->getCourse() === $this) {
-                $lesson->setCourse(null);
-            }
+        if ($this->lessons->removeElement($lesson) && $lesson->getCourse() === $this) {
+            $lesson->setCourse(null);
         }
 
         return $this;
