@@ -37,6 +37,7 @@ class Lesson
      * @Assert\NotBlank(message="Это поле не должно быть пустым")
      * @Assert\NotNull(message="Код не может равняться null")
      * @Assert\LessThan(value="10000", message="Порядковый номер должен быть меньше 10000")
+     * @Assert\Positive()
      */
     private $number;
 
