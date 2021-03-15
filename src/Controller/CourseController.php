@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
+use PHPUnit\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,14 +18,22 @@ use Symfony\Component\Routing\Annotation\Route;
 class CourseController extends AbstractController
 {
     /**
-     * @Route("/", name="courses_index", methods={"GET"})
+         * @Route("/", name="courses_index", methods={"GET"})
      * @param CourseRepository $courseRepository
      * @return Response
      */
     public function index(CourseRepository $courseRepository): Response
     {
+        $courses = $courseRepository->findAll();
+
+        if (count($courses) > 0) {
+            return $this->render('course/index.html.twig', [
+                'courses' => $courses,
+            ]);
+        }
+
         return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
+            'courses' => null,
         ]);
     }
 
@@ -56,6 +65,7 @@ class CourseController extends AbstractController
     /**
      * @Route("/{id}", name="course_show", methods={"GET"})
      * @param Course $course
+     * @param LessonRepository $lessonRepository
      * @return Response
      */
     public function show(Course $course, LessonRepository $lessonRepository): Response

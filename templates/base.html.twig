@@ -1,23 +1,64 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}StudyOn{% endblock %}</title>
-        {# Run `composer require symfony/webpack-encore-bundle`
-           and uncomment the following Encore helpers to start using Symfony UX #}
-        {% block stylesheets %}
-            {#{{ encore_entry_link_tags('app') }}#}
-        {% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}StudyOn{% endblock %}</title>
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
 
-        {% block javascripts %}
-            {#{{ encore_entry_script_tags('app') }}#}
-        {% endblock %}
-    </head>
-    <body>
-        {% block header %}{% endblock %}
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
 
-        {% block body %}{% endblock %}
+            <div class="row">
+                <div class="col-12 p-0">
+                    <!-- NavBar -->
+                    {% block header %}
+                        <div class="header">
+                            <nav class="navbar navbar-expand-lg navbar-light bg-primary fixed-top ">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand" href="{{ path('home') }}">Study-On</a>
+                                </div>
+                            </nav>
+                        </div>
+                    {% endblock %}
+                    <!-- ./NavBar -->
+                </div>
+            </div>
 
-        {% block footer %}{% endblock %}
-    </body>
+            <div class="row mt-5">
+                <div class="col-12 mt-5">
+                    <div class="container">
+                        <!-- Content -->
+                        <div class="content">
+                            {% block body %}{% endblock %}
+                        </div>
+                        <!-- ./Content -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 p-0">
+                    <!-- Footer -->
+                    <div class="footer">
+                        {% block footer %}
+                            <div class="w-100 h-100 bg-dark">
+                                <p class="text-center text-white pt-5">study-on © 2021</p>
+                            </div>
+                        {% endblock %}
+                    </div>
+                    <!-- ./Footer -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>

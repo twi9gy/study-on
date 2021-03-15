@@ -1,4 +1,25 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Сохранить') }}</button>
+ {{ form_start(form) }}
+
+    <div class="row">
+        <div class="col-12">
+            {{ form_widget(form) }}
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
+            <a href="{{ path('courses_index') }}" class="w-100 btn btn-outline-info">
+                Списк курсов
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
+            <button type="submit" class="btn btn-outline-success w-100" id="btn_form_course">
+                {{ button_label|default('Создать') }}
+            </button>
+        </div>
+
+    </div>
+
 {{ form_end(form) }}

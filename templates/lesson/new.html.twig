@@ -3,10 +3,27 @@
 {% block title %}Создание урока/StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Создание урока</h1>
+    <div class="row mb-5">
+        <div class="col-12">
 
-    <p>Курс: <a href="{{ path('course_show', { 'id': course.id }) }}">{{ course.title }}</a></p>
+            <div class="row">
+                <div class="col-12">
+                    <h1>Создание урока</h1>
+                </div>
+            </div>
 
-    {{ include('lesson/_form.html.twig') }}
+            <div class="row">
+                <div class="col-12">
+                    <p>Курс: <a href="{{ path('course_show', { 'id': course.id }) }}">{{ course.title }}</a></p>
+                </div>
+            </div>
 
+            <div class="row">
+                <div class="col-12">
+                    {{ include('lesson/_form.html.twig', {'button_label' : 'Создать'}) }}
+                </div>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

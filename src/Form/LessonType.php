@@ -32,11 +32,13 @@ class LessonType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Название урока',
-                'required' => true
+                'required' => true,
+                'empty_data' => '',
             ])
             ->add('content', TextareaType::class, [
                 'label' => 'Содержимое',
-                'required' => true
+                'required' => true,
+                'empty_data' => '',
             ])
             ->add('number', NumberType::class, ['label' => 'Порядкой номер урока в курсе'])
             ->add('course', HiddenType::class, ['data' => $selectedCourse, 'data_class' => null]);

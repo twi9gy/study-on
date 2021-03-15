@@ -3,9 +3,27 @@
 {% block title %}Редактирование курса/StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Редактирование Курса. {{ course.title }}</h1>
+    <div class="row mb-5">
+        <div class="col-12">
 
-    {{ include('course/_form.html.twig', {'button_label': 'Изменить'}) }}
+            <div class="row">
+                <div class="col-12">
+                    <h1>Редактирование Курса. {{ course.title }}</h1>
+                </div>
+            </div>
 
-    {{ include('course/_delete_form.html.twig') }}
+            <div class="row">
+                <div class="col-12">
+                    {{ include('course/_form.html.twig', {'button_label' : 'Изменить'}) }}
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-lg-3 col-md-3 col-sm-6">
+                    {{ include('course/_delete_form.html.twig') }}
+                </div>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

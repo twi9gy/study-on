@@ -1,0 +1,12 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+.content {
+    min-height: 90vh;
+}
+
+.footer {
+    padding-bottom: 0;
+    height: 10vh;
+}

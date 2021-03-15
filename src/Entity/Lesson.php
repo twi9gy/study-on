@@ -20,24 +20,21 @@ class Lesson
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert\NotBlank(message="Это поле не должно быть пустым")
-     * @Assert\NotNull(message="Код не может равняться null")
+     * @Assert\NotBlank(message="Поле Название урока не должно быть пустым")
      */
     private $title;
 
     /**
      * @ORM\Column(type="text")
-     * @Assert\NotBlank(message="Это поле не должно быть пустым")
-     * @Assert\NotNull(message="Код не может равняться null")
+     * @Assert\NotBlank(message="Поле Содержание не должно быть пустым")
      */
     private $content;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Assert\NotBlank(message="Это поле не должно быть пустым")
-     * @Assert\NotNull(message="Код не может равняться null")
+     * @Assert\NotBlank(message="Поле Порядковый номер не должно быть пустым")
      * @Assert\LessThan(value="10000", message="Порядковый номер должен быть меньше 10000")
-     * @Assert\Positive()
+     * @Assert\Positive(message="Порядковый номер должен быть положительным числом")
      */
     private $number;
 

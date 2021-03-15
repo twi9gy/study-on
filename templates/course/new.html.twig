@@ -3,9 +3,22 @@
 {% block title %}Создание курса/StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Создание курса</h1>
+    <div class="row mb-5">
+        <div class="col-12">
 
-    {{ include('course/_form.html.twig') }}
+            <div class="row">
+                <div class="col-12">
+                    <h1>Создание курса</h1>
+                </div>
+            </div>
 
-    <a href="{{ path('courses_index') }}">Вернуться к списку</a>
+
+            <div class="row">
+                <div class="col-12">
+                    {{ include('course/_form.html.twig', {'button_label' : 'Создать'}) }}
+                </div>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=CourseRepository::class)
  * @UniqueEntity(
  *     fields={"code"},
- *     message="Поле код должно быть уникальным"
+ *     message="Код курса должно быть уникальным"
  * )
  */
 class Course
@@ -27,15 +27,19 @@ class Course
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Assert\NotBlank(message="Это поле не должно быть пустым")
-     * @Assert\NotNull(message="Код не может равняться null")
+     * @Assert\NotBlank(message="Поле Код курса не должно быть пустым")
+     * @Assert\Type(
+     *     type="string",
+     *     message="Значение {{ value }} не удовлетворяет типу {{ type }}")
      */
     private $code;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert\NotBlank(message="Это поле не должно быть пустым")
-     * @Assert\NotNull(message="Код не может равняться null")
+     * @Assert\NotBlank(message="Поле Название курса не должно быть пустым")
+     * @Assert\Type(
+     *     type="string",
+     *     message="Значение {{ value }} не удовлетворяет типу {{ type }}")
      */
     private $title;
 

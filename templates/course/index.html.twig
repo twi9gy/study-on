@@ -3,16 +3,58 @@
 {% block title %}Курсы/StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Курсы</h1>
+    <div class="row mb-5">
+        <div class="col-12">
 
-    {% for course in courses %}
-        <a href="{{ path('course_show', {'id': course.id}) }}">{{ course.title }}</a>
-        <p>{{ course.description }}</p>
-    {% else %}
-        <h2>Записи не найдены</h2>
-    {% endfor %}
+            <div class="row mb-2">
+                <div class="col-12">
+                    <h1 class="text-center">Курсы</h1>
+                </div>
+            </div>
 
-    <hr/>
+            <div class="row">
+                <div class="col-12" id="list_course">
+                    <!-- List course -->
+                    {% for course in courses %}
 
-    <a href="{{ path('course_new') }}">Добавить новый курс</a>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card w-100 mb-2">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a href="{{ path('course_show', {'id': course.id}) }}" class="course_title">
+                                                {{ course.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="card-text">{{ course.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+
+                        <div class="row">
+                            <div class="col-12">
+                                <h2>Записи не найдены</h2>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                    <!-- ./List course -->
+                </div>
+            </div>
+
+            <hr/>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-12 col-sm-12">
+                    <a href="{{ path('course_new') }}" class="btn btn-primary w-100" id="add_course">
+                        Добавить новый курс
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

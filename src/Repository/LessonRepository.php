@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Lesson;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -28,6 +29,20 @@ class LessonRepository extends ServiceEntityRepository
             //->setMaxResults(10)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return Lesson Returns an array of Course objects
+     * @throws NonUniqueResultException
+     */
+    public function findLastLesson(): Lesson
+    {
+        return $this->createQueryBuilder('l')
+            ->orderBy('l.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+            ;
     }
 
     // /**
