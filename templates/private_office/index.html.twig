@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Личный кабинет/StudyOn{% endblock %}
+
+{% block body %}
+<div class="row mb-5 justify-content-center">
+    <div class="col-8">
+        <div class="card">
+
+            <div class="row">
+                <div class="col">
+                    <h3 class="text-center p-3 mt-2">Личный кабинет</h3>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="form-group row">
+                <label for="email" class="col-sm-4 col-form-label text-right">Email:</label>
+                <div class="col-sm-8">
+                    <p id="email">{{ username }}</p>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="roles" class="col-sm-4 col-form-label text-right">Права:</label>
+                <div class="col-sm-8">
+                    {% if is_granted('ROLE_SUPER_ADMIN') %}
+                        <p id="roles">Администратор</p>
+                    {% else %}
+                        <p id="roles">Пользователь</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="balance" class="col-sm-4 col-form-label text-right">Баланс:</label>
+                <div class="col-sm-8">
+                    <p id="balance">{{ balance }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

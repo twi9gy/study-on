@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Service\BillingClient;
+use App\Tests\Mock\BillingClientMock;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
@@ -197,5 +199,51 @@ abstract class AbstractTest extends WebTestCase
     private function makeErrorOneLine($text)
     {
         return preg_replace('#[\n\r]+#', ' ', $text);
+    }
+
+    // Функция для замены сервиса билинга на Mock версию.
+    private function getBillingClient(): void
+    {
+        // запрещаем перезагрузку ядра, чтобы не сбросилась подмена сервиса при запросе
+        self::getClient()->disableReboot();
+
+        self::getClient()->getContainer()->set(
+            'App\Service\BillingClient',
+            new BillingClientMock()
+        );
+    }
+
+    // Функция для проверки авторизации.
+    protected function auth(string $data, string $redirectPath)
+    {
+        // Получаем информацию из запроса
+        $requestData = json_decode($data, true);
+
+        // Заменяем сервис
+        $this->getBillingClient();
+        $client = self::getClient();
+
+        // Переходим на страницу авторизации
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
+
+        // Заполняем форму
+        $form = $crawler->selectButton('Вход')->form();
+        $form['email'] = $requestData['username'];
+        $form['password'] = $requestData['password'];
+        $client->submit($form);
+
+        // Проверяем ошибки
+        $error = $crawler->filter('#errors');
+        self::assertCount(0, $error);
+
+        // Проверка ответа запроса (редирект на страницу со списком курсов)
+        self::assertTrue($client->getResponse()->isRedirect($redirectPath));
+
+        // Редирект на страницу со списком курсов
+        $crawler = $client->followRedirect();
+        $this->assertResponseOk();
+        self::assertEquals($redirectPath, $client->getRequest()->getPathInfo());
+        return $crawler;
     }
 }

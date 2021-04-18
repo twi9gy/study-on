@@ -65,23 +65,25 @@
                     </a>
                 </div>
 
-                <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
-                    <a href="{{ path('lesson_new', {'course_id': course.id}) }}" class="btn btn-outline-success w-100"
-                        id="add_lesson">
-                        Добавить урок
-                    </a>
-                </div>
+                {% if is_granted('ROLE_SUPER_ADMIN') %}
+                    <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
+                        <a href="{{ path('lesson_new', {'course_id': course.id}) }}" class="btn btn-outline-success w-100"
+                           id="add_lesson">
+                            Добавить урок
+                        </a>
+                    </div>
 
-                <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
-                    <a href="{{ path('course_edit', {'id': course.id}) }}" class="btn btn-outline-secondary w-100"
-                        id="edit_course">
-                        Редактировать
-                    </a>
-                </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
+                        <a href="{{ path('course_edit', {'id': course.id}) }}" class="btn btn-outline-secondary w-100"
+                           id="edit_course">
+                            Редактировать
+                        </a>
+                    </div>
 
-                <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
-                    {{ include('course/_delete_form.html.twig') }}
-                </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 mt-2">
+                        {{ include('course/_delete_form.html.twig') }}
+                    </div>
+                {% endif %}
 
             </div>
 

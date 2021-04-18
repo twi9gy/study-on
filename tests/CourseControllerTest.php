@@ -7,13 +7,15 @@ use App\Entity\Course;
 use phpDocumentor\Reflection\Types\This;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CourseControllerTest extends AbstractTest
 {
     /**
      * @var string
      */
-    private $basePath = '/courses';
+    private $basePath;
+    private $serializer;
 
     public function getPath(): string
     {
@@ -25,6 +27,13 @@ class CourseControllerTest extends AbstractTest
         return [CourseFixtures::class];
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->serializer = self::$container->get(SerializerInterface::class);
+        $this->basePath = '/courses';
+    }
+
     /**
      * @dataProvider urlProviderSuccessful
      * @param $url
@@ -34,13 +43,14 @@ class CourseControllerTest extends AbstractTest
         // Тесты доступности страниц
         $client = self::getClient();
         $client->request('GET', $url);
-        self::assertResponseIsSuccessful();
+        // Проверка ответа запроса (редирект на страницу авторизации)
+        self::assertTrue($client->getResponse()->isRedirect('/login'));
     }
 
     public function urlProviderSuccessful(): \Generator
     {
-        yield [$this->getPath() . '/'];
-        yield [$this->getPath() . '/new'];
+        yield ['/courses/'];
+        yield ['/courses/new'];
     }
 
     // Тесты несуществующих url курса
@@ -61,12 +71,16 @@ class CourseControllerTest extends AbstractTest
     // Тесты для главной страницы курсов
     public function testCourseIndex(): void
     {
-        // Создание запроса
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'test'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Получение списка курсов
         $listCourse = $crawler->filter('div#list_course')->children();
@@ -75,9 +89,45 @@ class CourseControllerTest extends AbstractTest
         static::assertEquals(4, $listCourse->count());
     }
 
+    // Тест для проверки недоступности списка курсов по ссылке без авторизации
+    public function testAccessCourseIndex(): void
+    {
+        $client = self::getClient();
+        $client->request('GET', $this->getPath() . '/');
+        // Проверка Http старуса ответа
+        $this->assertResponseCode(Response::HTTP_FOUND, $client->getResponse());
+    }
+
+    // Тест для проверки недоступности курсов по ссылке без авторизации
+    public function testAccessCourseShow(): void
+    {
+        // Получаем менеджер и репозиторий уроков
+        $em = static::getEntityManager();
+        $courses = $em->getRepository(Course::class)->findAll();
+
+        $client = self::getClient();
+
+        foreach ($courses as $course) {
+            $client->request('GET', $this->getPath() . '/' . $course->getId());
+            // Проверка Http старуса ответа
+            $this->assertResponseCode(Response::HTTP_FOUND, $client->getResponse());
+        }
+    }
+
     // Тесты страницы курса
     public function testCourseShow(): void
     {
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'test'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $this->auth($requestData,'/courses/');
+        $client = self::getClient();
+
         // Получаем менеджер и репозиторий курсов
         $em = static::getEntityManager();
         $repository = $em->getRepository(Course::class);
@@ -88,7 +138,6 @@ class CourseControllerTest extends AbstractTest
         // Проходим все страницы курсов и проверяем количество уроков в курсе
         foreach ($courses as $course) {
             // Создание запроса
-            $client = static::getClient();
             $crawler = $client->request('GET', $this->getPath() . '/' . $course->getId());
 
             // Проверка Http старуса ответа
@@ -102,15 +151,19 @@ class CourseControllerTest extends AbstractTest
         }
     }
 
-    // Тест удаления всех курсов
-    public function testCourseDelete(): void
+    // Тест удаления всех курсов с ролью администарора
+    public function testCourseDeleteWithAdminRole(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseOk();
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         while (true) {
             // Выбираем курс
@@ -140,15 +193,72 @@ class CourseControllerTest extends AbstractTest
         }
     }
 
+    // Тест недоступности удаления всех курсов с ролью пользователя
+    public function testCourseDeleteWithUserRole()
+    {
+        // Тесты с использование интерфейса
+
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'test'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
+
+        // Выбираем курс
+        $courses = $crawler->filter('a.course_title');
+
+        $coursesLink = $courses->each(function (Crawler $node) {
+            return $node->link();
+        });
+
+        foreach ($coursesLink as $course) {
+            // Переходим на страницу курса
+            $crawler = $client->click($course);
+            $this->assertResponseOk();
+
+            // Ищем кнопку "удалить"
+            $deleteForm = $crawler->selectButton('btn_delete_course');
+            // Проверка: кнопка "удаить" не отображается
+            self::assertEmpty($deleteForm);
+        }
+
+        // Конец тестов с использование интерфейса
+
+        // Тесты по прямой ссылке
+
+        // Получаем менеджер и репозиторий курсов
+        $em = static::getEntityManager();
+        $listCourse = $em->getRepository(Course::class)->findAll();
+
+        foreach ($listCourse as $course) {
+            $client = static::getClient();
+            $crawler = $client->request('DELETE', $this->getPath() . '/' . $course->getId());
+
+            // Проверка Http старуса ответа
+            $this->assertResponseCode(Response::HTTP_FORBIDDEN, $client->getResponse());
+        }
+
+        // Конец тестов по прямой ссылке
+    }
+
     // Тест страницы добавления курса с валидными значениями
     public function testCourseNewWithValidFields(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Переходим на страницу формы
         $btn = $crawler->filter('a#add_course')->link();
@@ -177,15 +287,53 @@ class CourseControllerTest extends AbstractTest
         static::assertEquals(5, $listCourse->count());
     }
 
+    // Тест недоступности создания курса с ролью пользователя
+    public function testCourseNewWithUserRole()
+    {
+        // Тесты с использованием интерфейса
+
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'test'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
+
+        // Переходим на страницу формы
+        $createForm = $crawler->filter('a#add_course');
+        // Проверка: кнопка "добавить курс" не отображается
+        self::assertEmpty($createForm);
+
+        // Конец тестов с использованием интерфейса
+
+        // Тесты по прямой ссылке
+
+        $client = static::getClient();
+        $crawler = $client->request('GET', $this->getPath() . '/new');
+
+        // Проверка Http старуса ответа
+        $this->assertResponseCode(Response::HTTP_FORBIDDEN, $client->getResponse());
+
+        // Конец тестов по прямой ссылке
+    }
+
     // Тест страницы добавления курса с неправильными значениями поля код курса
     public function testCourseNewWithInvalidCodeField(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Переходим на страницу формы
         $btn = $crawler->filter('a#add_course')->link();
@@ -226,12 +374,16 @@ class CourseControllerTest extends AbstractTest
     // Тест страницы добавления курса с неправильными значениями поля название курса
     public function testCourseNewWithInvalidTitleField(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Переходим на страницу формы
         $btn = $crawler->filter('a#add_course')->link();
@@ -256,6 +408,17 @@ class CourseControllerTest extends AbstractTest
     // Тест загрузки данных в поля формы на странице изменения курса
     public function testCourseEditFillFields(): void
     {
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
+
         // Получаем менеджер и репозиторий курсов
         $em = static::getEntityManager();
         $listCourse = $em->getRepository(Course::class)->findAll();
@@ -279,15 +442,72 @@ class CourseControllerTest extends AbstractTest
         }
     }
 
+    // Тест недоступности изменения всех курсов с ролью пользователя
+    public function testCourseEditWithUserRole()
+    {
+        // Тесты с использованием интерфейса
+
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'test'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
+
+        // Выбираем курс
+        $courses = $crawler->filter('a.course_title');
+
+        $coursesLink = $courses->each(function (Crawler $node) {
+            return $node->link();
+        });
+
+        foreach ($coursesLink as $course) {
+            // Переходим на страницу курса
+            $crawler = $client->click($course);
+            $this->assertResponseOk();
+
+            // Ищем кнопку "редактировать"
+            $editForm = $crawler->filter('a#edit_course')->first();
+            // Проверка: кнопка "редактировать" не отображается
+            self::assertEmpty($editForm);
+        }
+
+        // Конец тестов с использованием интерфейса
+
+        // Тесты по прямой ссылке
+
+        // Получаем менеджер и репозиторий курсов
+        $em = static::getEntityManager();
+        $listCourse = $em->getRepository(Course::class)->findAll();
+
+        foreach ($listCourse as $course) {
+            $client = static::getClient();
+            $crawler = $client->request('GET', $this->getPath() . '/' . $course->getId() . '/edit');
+
+            // Проверка Http старуса ответа
+            $this->assertResponseCode(Response::HTTP_FORBIDDEN, $client->getResponse());
+        }
+
+        // Конец тестов по прямой ссылке
+    }
+
     // Тест страницы изменения курса с валидными значениями
     public function testCourseEditWithValidFields(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Выбираем курс
         $course = $crawler->filter('a.course_title')->first()->link();
@@ -322,12 +542,16 @@ class CourseControllerTest extends AbstractTest
     // Тест страницы изменения курса с неправильными значениями поля код курса
     public function testCourseEditWithInvalidCodeField(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseOk();
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Выбираем курс
         $course = $crawler->filter('a.course_title')->first()->link();
@@ -369,12 +593,16 @@ class CourseControllerTest extends AbstractTest
     // Тест страницы изменения курса с неправильными значениями поля код курса
     public function testCourseEditWithInvalidTitleField(): void
     {
-        // Создание запроса. Переходим на страницу курсов
-        $client = static::getClient();
-        $crawler = $client->request('GET', $this->getPath() . '/');
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'admin@gmail.com',
+            'password' => 'super_admin'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
 
-        // Проверка Http старуса ответа
-        $this->assertResponseOk();
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, '/courses/');
+        $client = self::getClient();
 
         // Выбираем курс
         $course = $crawler->filter('a.course_title')->first()->link();

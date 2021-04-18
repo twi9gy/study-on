@@ -23,6 +23,12 @@ class LessonController extends AbstractController
      */
     public function new(Request $request, CourseRepository $courseRepository): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         // Получаем Id курса
         $courseId = $request->get('course_id');
         // Получаем курс для перехода обратно
@@ -56,6 +62,12 @@ class LessonController extends AbstractController
      */
     public function show(Lesson $lesson): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_USER',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
         ]);
@@ -69,6 +81,12 @@ class LessonController extends AbstractController
      */
     public function edit(Request $request, Lesson $lesson): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         $form = $this->createForm(LessonType::class, $lesson, ['selected_course' => $lesson->getCourse()->getId()]);
         $form->handleRequest($request);
 
@@ -92,6 +110,12 @@ class LessonController extends AbstractController
      */
     public function delete(Request $request, Lesson $lesson): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         if ($this->isCsrfTokenValid('delete'.$lesson->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($lesson);

@@ -45,15 +45,17 @@
                 </div>
             </div>
 
-            <hr/>
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+                <hr/>
 
-            <div class="row justify-content-center">
-                <div class="col-lg-6 col-md-12 col-sm-12">
-                    <a href="{{ path('course_new') }}" class="btn btn-primary w-100" id="add_course">
-                        Добавить новый курс
-                    </a>
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 col-md-12 col-sm-12">
+                        <a href="{{ path('course_new') }}" class="btn btn-primary w-100" id="add_course">
+                            Добавить новый курс
+                        </a>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
 
         </div>
     </div>

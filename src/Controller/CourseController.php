@@ -6,7 +6,6 @@ use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
-use PHPUnit\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,12 +17,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class CourseController extends AbstractController
 {
     /**
-         * @Route("/", name="courses_index", methods={"GET"})
+     * @Route("/", name="courses_index", methods={"GET"})
      * @param CourseRepository $courseRepository
      * @return Response
      */
     public function index(CourseRepository $courseRepository): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_USER',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         $courses = $courseRepository->findAll();
 
         if (count($courses) > 0) {
@@ -44,6 +49,12 @@ class CourseController extends AbstractController
      */
     public function new(Request $request): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
@@ -70,6 +81,12 @@ class CourseController extends AbstractController
      */
     public function show(Course $course, LessonRepository $lessonRepository): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_USER',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         $lessons = $lessonRepository->findByCourse($course);
 
         return $this->render('course/show.html.twig', [
@@ -86,6 +103,12 @@ class CourseController extends AbstractController
      */
     public function edit(Request $request, Course $course): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
@@ -109,6 +132,12 @@ class CourseController extends AbstractController
      */
     public function delete(Request $request, Course $course): Response
     {
+        $this->denyAccessUnlessGranted(
+            'ROLE_SUPER_ADMIN',
+            $this->getUser(),
+            'У вас нет доступа к этой странице'
+        );
+
         if ($this->isCsrfTokenValid('delete'.$course->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($course);
