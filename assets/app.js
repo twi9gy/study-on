@@ -13,9 +13,12 @@ import './styles/global.scss';
 import './bootstrap';
 
 const $ = require('jquery');
+
 require('bootstrap');
-require('bootstrap4-toggle');
 
 $(document).ready(function () {
-    $('[data-toggle="popover"]').popover();
+    $('#PayAgree').click(function () {
+        let id = $(this).data('content');
+        window.location.replace('/courses/' + id + '/pay');
+    });
 })

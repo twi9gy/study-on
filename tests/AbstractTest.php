@@ -208,7 +208,7 @@ abstract class AbstractTest extends WebTestCase
         self::getClient()->disableReboot();
 
         self::getClient()->getContainer()->set(
-            'App\Service\BillingClient',
+            BillingClient::class,
             new BillingClientMock()
         );
     }
@@ -237,12 +237,9 @@ abstract class AbstractTest extends WebTestCase
         $error = $crawler->filter('#errors');
         self::assertCount(0, $error);
 
-        // Проверка ответа запроса (редирект на страницу со списком курсов)
-        self::assertTrue($client->getResponse()->isRedirect($redirectPath));
-
         // Редирект на страницу со списком курсов
         $crawler = $client->followRedirect();
-        $this->assertResponseOk();
+        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
         self::assertEquals($redirectPath, $client->getRequest()->getPathInfo());
         return $crawler;
     }

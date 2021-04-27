@@ -28,7 +28,7 @@
                                     <ul class="navbar-nav w-100 justify-content-end">
                                         {% if app.user != null %}
                                             <li class="nav-item">
-                                                <a class="header-p" style="color: white">Привет, {{ app.user.username }}</a>
+                                                <a class="nav-link text-white" >Привет, {{ app.user.username }}</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link active" href="{{ path('app_logout') }}">
@@ -62,6 +62,19 @@
                     <div class="container">
                         <!-- Content -->
                         <div class="content">
+
+                            {% for message in app.flashes('success') %}
+                                <div class="alert alert-success">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+
+                            {% for message in app.flashes('unsuccessful') %}
+                                <div class="alert alert-danger">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+
                             {% block body %}{% endblock %}
                         </div>
                         <!-- ./Content -->

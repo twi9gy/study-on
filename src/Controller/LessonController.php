@@ -3,9 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Lesson;
+use App\Exception\BillingAuthException;
+use App\Exception\BillingUnavailableException;
 use App\Form\LessonType;
 use App\Repository\CourseRepository;
+use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -58,15 +62,69 @@ class LessonController extends AbstractController
     /**
      * @Route("/{id}", name="lesson_show", methods={"GET"})
      * @param Lesson $lesson
+     * @param \App\Service\BillingClient $client
      * @return Response
+     * @throws \App\Exception\BillingAuthException
      */
-    public function show(Lesson $lesson): Response
+    public function show(Lesson $lesson, BillingClient $client): Response
     {
         $this->denyAccessUnlessGranted(
             'ROLE_USER',
             $this->getUser(),
             'У вас нет доступа к этой странице'
         );
+
+        if ($this->isGranted('ROLE_SUPER_ADMIN')) {
+            return $this->render('lesson/show.html.twig', [
+                'lesson' => $lesson,
+            ]);
+        }
+
+        // Получаем курс, к которому относиться урок
+        $course = $lesson->getCourse();
+
+        // Получение информации о курсе из сервиса billing
+        try {
+            $courseData = $client->getCourse($this->getUser(), $course);
+        } catch (BillingAuthException | BillingUnavailableException $e) {
+            throw new BillingAuthException($e->getMessage());
+        }
+
+        if ($courseData['type'] !== 'free') {
+            // Получение курсов пользователя
+            try {
+                $coursesUser = $client->getUserCourses($this->getUser());
+            } catch (BillingAuthException | BillingUnavailableException $e) {
+                throw new BillingAuthException($e->getMessage());
+            }
+
+            $purchased = false;
+            $rented = false;
+
+            foreach ($coursesUser as $courseUser) {
+                if ($courseUser['code'] === $course->getCode()) {
+                    if ($courseData['type'] === 'rent') {
+                        $rented = true;
+                        break;
+                    }
+
+                    if ($courseData['type'] === 'buy') {
+                        $purchased = true;
+                        break;
+                    }
+                }
+            }
+
+            dump(!$purchased && $courseData['type'] === 'buy' | !$rented && $courseData['type'] === 'rent');
+
+            if (!$purchased && $courseData['type'] === 'buy') {
+                throw new AccessDeniedException('У вас нет доступа к этому уроку.');
+            }
+
+            if (!$rented && $courseData['type'] === 'rent') {
+                throw new AccessDeniedException('У вас нет доступа к этому уроку.');
+            }
+        }
 
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,

@@ -18,7 +18,7 @@
             <div class="form-group row">
                 <label for="email" class="col-sm-4 col-form-label text-right">Email:</label>
                 <div class="col-sm-8">
-                    <p id="email">{{ username }}</p>
+                    <input id="email" value="{{ username }}" readonly/>
                 </div>
             </div>
 
@@ -26,9 +26,9 @@
                 <label for="roles" class="col-sm-4 col-form-label text-right">Права:</label>
                 <div class="col-sm-8">
                     {% if is_granted('ROLE_SUPER_ADMIN') %}
-                        <p id="roles">Администратор</p>
+                        <input id="roles" value="Администратор" readonly/>
                     {% else %}
-                        <p id="roles">Пользователь</p>
+                        <input id="roles" value="Пользователь" readonly/>
                     {% endif %}
                 </div>
             </div>
@@ -36,7 +36,17 @@
             <div class="form-group row">
                 <label for="balance" class="col-sm-4 col-form-label text-right">Баланс:</label>
                 <div class="col-sm-8">
-                    <p id="balance">{{ balance }}</p>
+                    <input id="balance" value="{{ balance }}" readonly/>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-center">
+                        <a class="transaction_history" href="{{ path('transaction_history') }}">
+                            <i class="fa fa-user" aria-hidden="true"></i>История транзакций
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -20,13 +20,60 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="card w-100 mb-2">
+
+
                                     <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a href="{{ path('course_show', {'id': course.id}) }}" class="course_title">
-                                                {{ course.title }}
-                                            </a>
-                                        </h5>
-                                        <p class="card-text">{{ course.description }}</p>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h5 class="card-title">
+                                                    <a href="{{ path('course_show', {'id': course.id}) }}" class="course_title">
+                                                        {{ course.title }}
+                                                    </a>
+                                                </h5>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <p class="card-text">{{ course.description }}</p>
+                                            </div>
+                                        </div>
+
+                                        {% if course.type != "free" %}
+                                            <hr/>
+                                        {% endif %}
+
+                                        <div class="row">
+                                            {% if course.type == "rent" and course.expires_at != "" %}
+                                                <div class="col-6">
+                                                    <p class="course_rented card-text text-left">Арендовано до {{ course.expires_at|date("Y-m-d H:m") }}</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="course_cost card-text text-right">Цена: {{ course.price }} руб.</p>
+                                                </div>
+                                            {% else %}
+
+                                                {% if course.type == "buy" and course.purchased %}
+                                                    <div class="col-6">
+                                                        <p class="course_purchased card-text text-left">Куплено</p>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <p class="course_cost card-text text-right">Цена: {{ course.price }} руб.</p>
+                                                    </div>
+                                                {% else %}
+
+                                                    {% if course.price is not null %}
+                                                        <div class="col-12">
+                                                            <p class="course_cost card-text text-right">Цена: {{ course.price }} руб.</p>
+                                                        </div>
+                                                    {% endif %}
+
+                                                {% endif %}
+
+                                            {% endif %}
+
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>

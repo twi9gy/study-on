@@ -82,20 +82,21 @@ class AppUserAuthenticator extends AbstractFormLoginAuthenticator
 
         // Запрос к сервису оплаты для получения токена авторизации
         try {
-            $token = $this->billingClient->auth($request);
+            $dataResponse = $this->billingClient->auth($request);
         } catch (BillingUnavailableException | BillingAuthException $e) {
             throw new CustomUserMessageAuthenticationException($e->getMessage());
         }
 
         // Проверка ответа и формирование пользователя
-        if ($token !== '') {
-            $tokenParts = explode('.', $token);
+        if ($dataResponse) {
+            $tokenParts = explode('.', $dataResponse['token']);
             $payload = json_decode(base64_decode($tokenParts[1]), true);
 
             $user = new User();
-            $user->setApiToken($token);
+            $user->setApiToken($dataResponse['token']);
             $user->setEmail($payload['username']);
             $user->setRoles($payload['roles']);
+            $user->setRefreshToken($dataResponse['refresh_token']);
             return $user;
         }
 

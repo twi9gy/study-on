@@ -33,3 +33,7 @@ services:
     App\Service\BillingClient:
         public: true
         autowire: true
+
+    App\Service\DecodeJwt:
+        public: true
+        autowire: true

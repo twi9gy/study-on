@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}История транзакций/StudyOn{% endblock %}
+
+{% block body %}
+    <div class="row mb-5 justify-content-center">
+        <div class="col-12">
+            <div class="card">
+
+                <div class="row">
+                    <div class="col">
+                        <h3 class="text-center p-3 mt-2">История транзакций</h3>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-center">
+                            <a href="{{ path('private_office') }}">
+                                <i class="fa fa-sign-out" aria-hidden="true"></i>Личный кабинет
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">№</th>
+                                <th scope="col">Тип</th>
+                                <th scope="col">Сумма</th>
+                                <th scope="col">Время создания</th>
+                                <th scope="col">Курс</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for transaction in transactions %}
+                                {% if transaction.course|default(false) %}
+                                    <tr>
+                                        <td>2</td>
+                                        <td>{{ transaction.type }}</td>
+                                        <td>{{ transaction.amount }}</td>
+                                        <td>{{ transaction.created_at|date("Y-m-d H:m") }}</td>
+                                        <td>
+                                            <a href="{{ path('course_show', {'id': transaction.course.id}) }}" class="course_title">
+                                                {{ transaction.course.title }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td>1</td>
+                                        <td>{{ transaction.type }}</td>
+                                        <td>{{ transaction.amount }}</td>
+                                        <td>{{ transaction.created_at|date("Y-m-d H:m") }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

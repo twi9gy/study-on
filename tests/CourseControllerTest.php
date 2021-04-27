@@ -16,6 +16,7 @@ class CourseControllerTest extends AbstractTest
      */
     private $basePath;
     private $serializer;
+    private $redirectPath;
 
     public function getPath(): string
     {
@@ -32,6 +33,7 @@ class CourseControllerTest extends AbstractTest
         parent::setUp();
         $this->serializer = self::$container->get(SerializerInterface::class);
         $this->basePath = '/courses';
+        $this->redirectPath = '/courses/';
     }
 
     /**
@@ -74,12 +76,12 @@ class CourseControllerTest extends AbstractTest
         // Формируем данные для авторизации
         $data = [
             'username' => 'test@gmail.com',
-            'password' => 'test'
+            'password' => 'general_user'
         ];
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Получение списка курсов
@@ -87,6 +89,39 @@ class CourseControllerTest extends AbstractTest
 
         // Проверка количества курсов на странице
         static::assertEquals(4, $listCourse->count());
+
+        // Получение стоимосей курсов
+        $coursesCost = $crawler->filter('p.course_cost');
+
+        // Получаем названия курсов
+        $costList = $coursesCost->each(function (Crawler $node) {
+            return $node->text();
+        });
+
+        // Проверка отображения стоимостей курсов
+        static::assertEquals(3, count($costList));
+
+        // Получение арендованных курсов
+        $coursesRent = $crawler->filter('p.course_rented');
+
+        // Получаем названия курсов
+        $rentList = $coursesRent->each(function (Crawler $node) {
+            return $node->text();
+        });
+
+        // Проверка отображения стоимостей курсов
+        static::assertEquals(1, count($rentList));
+
+        // Получение купленных курсов
+        $coursesPurchased = $crawler->filter('p.course_purchased');
+
+        // Получаем названия курсов
+        $purchasedList = $coursesPurchased->each(function (Crawler $node) {
+            return $node->text();
+        });
+
+        // Проверка отображения стоимостей курсов
+        static::assertEquals(1, count($purchasedList));
     }
 
     // Тест для проверки недоступности списка курсов по ссылке без авторизации
@@ -114,18 +149,18 @@ class CourseControllerTest extends AbstractTest
         }
     }
 
-    // Тесты страницы курса
+    // Тесты страницы курсов
     public function testCourseShow(): void
     {
         // Формируем данные для авторизации
         $data = [
             'username' => 'test@gmail.com',
-            'password' => 'test'
+            'password' => 'general_user'
         ];
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $this->auth($requestData,'/courses/');
+        $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Получаем менеджер и репозиторий курсов
@@ -162,7 +197,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         while (true) {
@@ -201,12 +236,12 @@ class CourseControllerTest extends AbstractTest
         // Формируем данные для авторизации
         $data = [
             'username' => 'test@gmail.com',
-            'password' => 'test'
+            'password' => 'general_user'
         ];
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Выбираем курс
@@ -257,7 +292,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Переходим на страницу формы
@@ -295,12 +330,12 @@ class CourseControllerTest extends AbstractTest
         // Формируем данные для авторизации
         $data = [
             'username' => 'test@gmail.com',
-            'password' => 'test'
+            'password' => 'general_user'
         ];
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Переходим на страницу формы
@@ -332,7 +367,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Переходим на страницу формы
@@ -358,7 +393,7 @@ class CourseControllerTest extends AbstractTest
 
         // Заполняем поля
         $form = $crawler->selectButton('btn_form_course')->form();
-        $form['course[code]'] = '1FFQQ2GF2'; // Курс с таким кодом уже существует
+        $form['course[code]'] = 'Business-Analyst'; // Курс с таким кодом уже существует
         $form['course[title]'] = 'My first course';
         $form['course[description]'] = 'It`s my first course at this program.';
 
@@ -382,7 +417,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Переходим на страницу формы
@@ -416,7 +451,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Получаем менеджер и репозиторий курсов
@@ -450,12 +485,12 @@ class CourseControllerTest extends AbstractTest
         // Формируем данные для авторизации
         $data = [
             'username' => 'test@gmail.com',
-            'password' => 'test'
+            'password' => 'general_user'
         ];
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Выбираем курс
@@ -506,7 +541,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Выбираем курс
@@ -550,7 +585,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Выбираем курс
@@ -581,7 +616,7 @@ class CourseControllerTest extends AbstractTest
 
         // Заполняем поле
         $form = $crawler->selectButton('btn_form_course')->form();
-        $form['course[code]'] = '2CCCA2F33'; // Курс с таким кодом уже существует
+        $form['course[code]'] = 'Business-Analyst'; // Курс с таким кодом уже существует
 
         // Отправляем форму
         $crawler = $client->submit($form);
@@ -601,7 +636,7 @@ class CourseControllerTest extends AbstractTest
         $requestData = $this->serializer->serialize($data, 'json');
 
         // Авторизация пользователя и редирект на страницу курсов
-        $crawler = $this->auth($requestData, '/courses/');
+        $crawler = $this->auth($requestData, $this->redirectPath);
         $client = self::getClient();
 
         // Выбираем курс
@@ -627,5 +662,36 @@ class CourseControllerTest extends AbstractTest
         // Получаем список ошибок
         $error = $crawler->filter('span.form-error-message')->first();
         self::assertEquals('Поле Название курса не должно быть пустым', $error->text());
+    }
+
+    public function testCoursePay():void
+    {
+        $data = [
+            'username' => 'test@gmail.com',
+            'password' => 'general_user'
+        ];
+        $requestData = $this->serializer->serialize($data, 'json');
+
+        // Авторизация пользователя и редирект на страницу курсов
+        $crawler = $this->auth($requestData, $this->redirectPath);
+        $client = self::getClient();
+
+        // Получаем менеджер и репозиторий курсов
+        $em = static::getEntityManager();
+        $course = $em->getRepository(Course::class)->findOneBy(['code' => 'Introduction-to-Data-Analysis-and-Machine-Learning']);
+
+        // Переходим на неоплаченный курс
+        $crawler = $client->request('GET', $this->getPath() . '/' . $course->getId());
+
+        // Нажимаем на кнопку "Арендовать"
+        $BuyButton = $crawler->selectButton('Арендовать')->form();
+        $crawler = $client->submit($BuyButton);
+
+        // Нажимаем на кнопку "Да" в модальном окне
+        $agreeButton = $crawler->selectButton('Да')->form();
+        $crawler = $client->submit($agreeButton);
+
+        // Проверка ответа запроса (редирект на страницу курса)
+        self::assertTrue($client->getResponse()->isRedirect('/courses/' . $course->getId() . '/pay'));
     }
 }
