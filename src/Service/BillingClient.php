@@ -1,11 +1,11 @@
 <?php
 
-
 namespace App\Service;
 
 use App\Entity\Course;
 use App\Exception\BillingAuthException;
 use App\Exception\BillingUnavailableException;
+use App\Form\CourseType;
 use App\Security\User;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -133,7 +133,7 @@ class BillingClient
     /**
      * @param string $refresh_token
      * @return mixed
-     * @throws \App\Exception\BillingUnavailableException
+     * @throws BillingUnavailableException
      */
     public function refreshUser(string $refresh_token): array
     {
@@ -276,7 +276,7 @@ class BillingClient
     }
 
     /**
-     * @throws \App\Exception\BillingUnavailableException
+     * @throws BillingUnavailableException
      * @throws \App\Exception\BillingAuthException
      */
     public function getTransactions(User $user): array
@@ -305,5 +305,61 @@ class BillingClient
         }
 
         return $result;
+    }
+
+    /**
+     * @throws BillingUnavailableException
+     */
+    public function createCourse(User $user, string $request): array
+    {
+        // Формирование запроса в сервис Billing
+        $ch = curl_init($this->baseUri . '/api/v1/courses/new');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $user->getApiToken(),
+            'Content-Length: ' . strlen($request)
+        ]);
+        $response = curl_exec($ch);
+
+        // Выбрасываем ошибку биллинга
+        if ($response === false) {
+            throw new BillingUnavailableException('Сервис временно недоступен.');
+        }
+
+        curl_close($ch);
+
+        // Парсер ответа сервиса
+        return json_decode($response, true);
+    }
+
+    /**
+     * @throws BillingUnavailableException
+     */
+    public function editCourse(User $user, string $code, string $request): array
+    {
+        // Формирование запроса в сервис Billing
+        $ch = curl_init($this->baseUri . '/api/v1/courses/' . $code);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $user->getApiToken(),
+            'Content-Length: ' . strlen($request)
+        ]);
+        $response = curl_exec($ch);
+
+        // Выбрасываем ошибку биллинга
+        if ($response === false) {
+            throw new BillingUnavailableException('Сервис временно недоступен.');
+        }
+
+        curl_close($ch);
+
+        // Парсер ответа сервиса
+        return json_decode($response, true);
     }
 }

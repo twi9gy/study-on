@@ -41,7 +41,7 @@
                             {% for transaction in transactions %}
                                 {% if transaction.course|default(false) %}
                                     <tr>
-                                        <td>2</td>
+                                        <td>{{ loop.index }}</td>
                                         <td>{{ transaction.type }}</td>
                                         <td>{{ transaction.amount }}</td>
                                         <td>{{ transaction.created_at|date("Y-m-d H:m") }}</td>
@@ -53,7 +53,7 @@
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td>1</td>
+                                        <td>{{ loop.index }}</td>
                                         <td>{{ transaction.type }}</td>
                                         <td>{{ transaction.amount }}</td>
                                         <td>{{ transaction.created_at|date("Y-m-d H:m") }}</td>

@@ -89,22 +89,47 @@ class BillingClientMock extends BillingClient
             [
                 'code' => 'Introduction-to-Data-Analysis-and-Machine-Learning',
                 'type' => 'rent',
-                'price' => 100
+                'cost' => 100,
             ],
             [
-                'code' => 'Web-Designer',
-                'type' => 'free'
-            ],
-            [
-                'code' => 'Internet-Marketer',
-                'type' => 'buy',
-                'price' => 500
+                'code' => 'Sport-Manager',
+                'type' => 'rent',
+                'cost' => 300,
             ],
             [
                 'code' => 'Business-Analyst',
                 'type' => 'rent',
-                'price' => 50
-            ]
+                'cost' => 50,
+            ],
+            [
+                'code' => 'Sketching-Basics',
+                'type' => 'rent',
+                'cost' => 275,
+            ],
+            [
+                'title' => 'Веб-дизайнер.',
+                'code' => 'Web-Designer',
+                'type' => 'free',
+            ],
+            [
+                'code' => 'Protection-of-rights',
+                'type' => 'free',
+            ],
+            [
+                'code' => 'Internet-Marketer',
+                'type' => 'buy',
+                'cost' => 500,
+            ],
+            [
+                'code' => 'Adobe-Photoshop',
+                'type' => 'buy',
+                'cost' => 350,
+            ],
+            [
+                'code' => 'Financial-management',
+                'type' => 'buy',
+                'cost' => 50,
+            ],
         ];
     }
 
@@ -141,6 +166,45 @@ class BillingClientMock extends BillingClient
             ];
         }
 
+        if ($course->getCode() === 'Sport-Manager') {
+            return [
+                'code' => 'Sport-Manager',
+                'type' => 'rent',
+                'price' => 300
+            ];
+        }
+
+        if ($course->getCode() === 'Sketching-Basics') {
+            return [
+                'code' => 'Sketching-Basics',
+                'type' => 'rent',
+                'price' => 275
+            ];
+        }
+
+        if ($course->getCode() === 'Protection-of-rights') {
+            return [
+                'code' => 'Protection-of-rights',
+                'type' => 'free'
+            ];
+        }
+
+        if ($course->getCode() === 'Adobe-Photoshop') {
+            return [
+                'code' => 'Adobe-Photoshop',
+                'type' => 'buy',
+                'price' => 350
+            ];
+        }
+
+        if ($course->getCode() === 'Financial-management') {
+            return [
+                'code' => 'Financial-management',
+                'type' => 'buy',
+                'price' => 50
+            ];
+        }
+
         return [];
     }
 
@@ -151,11 +215,22 @@ class BillingClientMock extends BillingClient
                 'code' => 'Business-Analyst',
                 'cost' => 50,
                 'type' => 'rent',
-                'expires_at' => '2021-05-03T21:20:10+00:00'
+                'expires_at' => (new \DateTime())->modify('+5 day')->format('Y-m-d H:i')
             ],
             [
                 'code' => 'Internet-Marketer',
                 'cost' => 500,
+                'type' => 'buy'
+            ],
+            [
+                'code' => 'Sketching-Basics',
+                'cost' => 275,
+                'type' => 'rent',
+                'expires_at' => (new \DateTime())->modify('+3 day')->format('Y-m-d H:i')
+            ],
+            [
+                'code' => 'Adobe-Photoshop',
+                'cost' => 350,
                 'type' => 'buy'
             ]
         ];
@@ -166,7 +241,7 @@ class BillingClientMock extends BillingClient
         return [
             'success' => true,
             'course_type' => 'rent',
-            'expires_at' => '2021-05-20T13:46:07+00:00'
+            'expires_at' => (new \DateTime())->modify('+7 day')
         ];
     }
 
@@ -174,19 +249,67 @@ class BillingClientMock extends BillingClient
     {
         return [
             [
-                'id' => 8,
-                'created_at' => '2021-04-26T08:18:04+00:00',
+                'id' => 18,
+                'created_at' => (new \DateTime())->modify('-3 day'),
                 'type' => 'deposit',
                 'amount' => 1000
             ],
             [
                 'id' => 20,
-                'created_at' => '2021-04-26T18:20:10+00:00',
-                'skip_expired' => '2021-05-03T21:20:10+00:00',
+                'created_at' => (new \DateTime())->modify('-2 day'),
+                'skip_expired' => (new \DateTime())->modify('+5 day'),
                 'type' => 'payment',
                 'course_code' => 'Business-Analyst',
                 'amount' => 50
             ],
+            [
+                'id' => 22,
+                'created_at' => (new \DateTime())->modify('-12 day'),
+                'skip_expired' => (new \DateTime())->modify('-7 day'),
+                'type' => 'payment',
+                'course_code' => 'Introduction-to-Data-Analysis-and-Machine-Learning',
+                'amount' => 100
+            ],
+            [
+                'id' => 24,
+                'created_at' => (new \DateTime())->modify('-15 day'),
+                'skip_expired' => (new \DateTime())->modify('-10 day'),
+                'type' => 'payment',
+                'course_code' => 'Sport-Manager',
+                'amount' => 300
+            ],
+            [
+                'id' => 26,
+                'created_at' => (new \DateTime())->modify('-1 day'),
+                'skip_expired' => (new \DateTime())->modify('+6 day'),
+                'type' => 'payment',
+                'course_code' => 'Sketching-Basics',
+                'amount' => 275
+            ],
+            [
+                'id' => 28,
+                'created_at' => (new \DateTime())->modify('-1 day'),
+                'type' => 'payment',
+                'course_code' => 'Internet-Marketer',
+                'amount' => 500
+            ],
+            [
+                'id' => 30,
+                'created_at' => (new \DateTime())->modify('-2 day'),
+                'type' => 'payment',
+                'course_code' => 'Adobe-Photoshop',
+                'amount' => 350
+            ],
         ];
+    }
+
+    public function createCourse(User $user, string $request): array
+    {
+        return ['success' => true];
+    }
+
+    public function editCourse(User $user, string $code, string $request): array
+    {
+        return ['success' => true];
     }
 }

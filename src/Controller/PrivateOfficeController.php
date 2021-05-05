@@ -67,9 +67,9 @@ class PrivateOfficeController extends AbstractController
         $transactionsData = [];
         foreach ($transactions as $transaction) {
             $in_result = false;
-            if (isset($transaction['course_code'])) {
+            if (isset($transaction['code'])) {
                 foreach ($courses as $course) {
-                    if ($course->getCode() === $transaction['course_code']) {
+                    if ($course->getCode() === $transaction['code']) {
                         $transactionsData[] = [
                             'type' => $transaction['type'],
                             'amount' => $transaction['amount'],

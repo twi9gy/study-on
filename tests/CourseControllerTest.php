@@ -88,10 +88,10 @@ class CourseControllerTest extends AbstractTest
         $listCourse = $crawler->filter('div#list_course')->children();
 
         // Проверка количества курсов на странице
-        static::assertEquals(4, $listCourse->count());
+        static::assertEquals(9, $listCourse->count());
 
         // Получение стоимосей курсов
-        $coursesCost = $crawler->filter('p.course_cost');
+        $coursesCost = $crawler->filter('.course_cost');
 
         // Получаем названия курсов
         $costList = $coursesCost->each(function (Crawler $node) {
@@ -99,18 +99,18 @@ class CourseControllerTest extends AbstractTest
         });
 
         // Проверка отображения стоимостей курсов
-        static::assertEquals(3, count($costList));
+        static::assertEquals(7, count($costList));
 
         // Получение арендованных курсов
-        $coursesRent = $crawler->filter('p.course_rented');
+        $coursesRent = $crawler->filter('.course_rented');
 
         // Получаем названия курсов
         $rentList = $coursesRent->each(function (Crawler $node) {
             return $node->text();
         });
 
-        // Проверка отображения стоимостей курсов
-        static::assertEquals(1, count($rentList));
+        // Проверка отображения арендованных курсов
+        static::assertEquals(2, count($rentList));
 
         // Получение купленных курсов
         $coursesPurchased = $crawler->filter('p.course_purchased');
@@ -120,8 +120,8 @@ class CourseControllerTest extends AbstractTest
             return $node->text();
         });
 
-        // Проверка отображения стоимостей курсов
-        static::assertEquals(1, count($purchasedList));
+        // Проверка отображения купленных курсов
+        static::assertEquals(2, count($purchasedList));
     }
 
     // Тест для проверки недоступности списка курсов по ссылке без авторизации
@@ -318,8 +318,8 @@ class CourseControllerTest extends AbstractTest
         // Получение списка курсов
         $listCourse = $crawler->filter('div#list_course')->children();
 
-        // Проверка обновленного количества курсов на странице (было 4)
-        static::assertEquals(5, $listCourse->count());
+        // Проверка обновленного количества курсов на странице (было 9)
+        static::assertEquals(10, $listCourse->count());
     }
 
     // Тест недоступности создания курса с ролью пользователя

@@ -6,12 +6,11 @@ use App\Entity\Course;
 use App\Exception\BillingAuthException;
 use App\Exception\BillingUnavailableException;
 use App\Form\CourseType;
+use App\Form\PaymentType;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
 use App\Service\BillingClient;
 use App\Service\DecodeJwt;
-use phpDocumentor\Reflection\Types\Integer;
-use PHPUnit\Util\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -96,7 +95,7 @@ class CourseController extends AbstractController
                             $course->getTitle(),
                             $course->getDescription(),
                             $courseBilling['type'],
-                            $courseBilling['price'],
+                            $courseBilling['cost'],
                             $purchased,
                             $expires_at
                         );
@@ -107,7 +106,7 @@ class CourseController extends AbstractController
                             $course->getTitle(),
                             $course->getDescription(),
                             $courseBilling['type'],
-                            $courseBilling['price'],
+                            $courseBilling['cost'],
                             $purchased,
                             null
                         );
@@ -178,10 +177,16 @@ class CourseController extends AbstractController
     /**
      * @Route("/new", name="course_new", methods={"GET","POST"})
      * @param Request $request
+     * @param BillingClient $client
+     * @param SerializerInterface $serializer
      * @return Response
+     * @throws BillingUnavailableException
      */
-    public function new(Request $request): Response
-    {
+    public function new(
+        Request $request,
+        BillingClient $client,
+        SerializerInterface $serializer
+    ): Response {
         $this->denyAccessUnlessGranted(
             'ROLE_SUPER_ADMIN',
             $this->getUser(),
@@ -193,9 +198,19 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Сохранение курса
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($course);
             $entityManager->flush();
+
+            // Запрос в сервис billing для создания курса
+            $dataRequest = [
+                'type' => $form->get('type')->getNormData(),
+                'title' => $form->get('title')->getNormData(),
+                'code' => $form->get('code')->getNormData(),
+                'price' => $form->get('cost')->getNormData()
+            ];
+            $client->createCourse($this->getUser(), $serializer->serialize($dataRequest, 'json'));
 
             return $this->redirectToRoute('courses_index');
         }
@@ -207,17 +222,17 @@ class CourseController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="course_show", methods={"GET"})
+     * @Route("/{id}", name="course_show", methods={"GET", "POST"})
      * @param Course $course
      * @param LessonRepository $lessonRepository
-     * @param \App\Service\BillingClient $client
-     * @param \App\Service\DecodeJwt $decodeJwt
-     * @param \Symfony\Component\Serializer\SerializerInterface $serializer
-     * @param CourseRepository $courseRepository
+     * @param BillingClient $client
+     * @param DecodeJwt $decodeJwt
+     * @param SerializerInterface $serializer
      * @return Response
      * @throws BillingAuthException
      */
     public function show(
+        Request $request,
         Course $course,
         LessonRepository $lessonRepository,
         BillingClient $client,
@@ -303,11 +318,20 @@ class CourseController extends AbstractController
             $action = 'Арендовать';
         }
 
+        // Форма для оплаты курса
+        $form = $this->createForm(PaymentType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            return $this->redirectToRoute('course_pay', ['id' => $course['id']]);
+        }
+
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'lessons' => $lessons,
             'action' => $action,
-            'balance' => $userData['balance']
+            'balance' => $userData['balance'],
+            'form' => $form->createView()
         ]);
     }
 
@@ -315,23 +339,57 @@ class CourseController extends AbstractController
      * @Route("/{id}/edit", name="course_edit", methods={"GET","POST"})
      * @param Request $request
      * @param Course $course
+     * @param BillingClient $client
+     * @param SerializerInterface $serializer
      * @return Response
+     * @throws BillingAuthException
+     * @throws BillingUnavailableException
      */
-    public function edit(Request $request, Course $course): Response
-    {
+    public function edit(
+        Request $request,
+        Course $course,
+        BillingClient $client,
+        SerializerInterface $serializer
+    ): Response {
         $this->denyAccessUnlessGranted(
             'ROLE_SUPER_ADMIN',
             $this->getUser(),
             'У вас нет доступа к этой странице'
         );
 
+        // Запрос с billing для получения информации о курсе
+        $courseData = $client->getCourse($this->getUser(), $course);
+        $courseCode = $course->getCode();
+
         $form = $this->createForm(CourseType::class, $course);
+        $form->get('type')->setData($courseData['type']);
+        $form->get('cost')->setData($courseData['price'] ?? 0);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $dataRequest = [
+                'type' => $form->get('type')->getNormData(),
+                'title' => $form->get('title')->getNormData(),
+                'code' => $form->get('code')->getNormData(),
+                'price' => $form->get('cost')->getNormData()
+            ];
 
-            return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
+            $responseData = $client->editCourse(
+                $this->getUser(),
+                $courseCode,
+                $serializer->serialize($dataRequest, 'json')
+            );
+
+            // Если в сервисе billing успешно изменился курс, то сохраняем изменения
+            if (isset($responseData['success'])) {
+                $this->getDoctrine()->getManager()->flush();
+                return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
+            }
+
+            return $this->render('course/edit.html.twig', [
+                'course' => $course,
+                'form' => $form->createView(),
+            ]);
         }
 
         return $this->render('course/edit.html.twig', [
@@ -365,10 +423,10 @@ class CourseController extends AbstractController
 
     /**
      * @Route("/{id}/pay", name="course_pay", methods={"GET","POST"})
-     * @param \App\Service\BillingClient $client
+     * @param BillingClient $client
      * @param Course $course
      * @return Response
-     * @throws \App\Exception\BillingAuthException
+     * @throws BillingAuthException
      */
     public function paymentCourse(BillingClient $client, Course $course): Response
     {

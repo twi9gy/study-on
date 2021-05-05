@@ -16,9 +16,9 @@ const $ = require('jquery');
 
 require('bootstrap');
 
-$(document).ready(function () {
-    $('#PayAgree').click(function () {
-        let id = $(this).data('content');
-        window.location.replace('/courses/' + id + '/pay');
-    });
-})
+// $(document).ready(function () {
+//     $('#PayAgree').click(function () {
+//         let id = $(this).data('content');
+//         window.location.replace('/courses/' + id + '/pay');
+//     });
+// })
